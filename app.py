@@ -593,4 +593,9 @@ def process_uploaded_reservations(file_path):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    
+    # Get port from environment variable (Render provides this)
+    port = int(os.environ.get("PORT", 5000))  # Default to 5000 if PORT is not set
+    
+    # Run Flask on 0.0.0.0 to make it accessible on Render
+    app.run(host="0.0.0.0", port=port, debug=True)
