@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CleanHive - Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="login-container">
+        <img src="{{ url_for('static', filename='images/cleanhive.png') }}" alt="CleanHive Logo" class="logo">
+        <h2>Welcome to CleanHive</h2>
+        
+        <form action="{{ url_for('login') }}" method="POST">
+            <label for="user">Select Your Name:</label>
+            <select name="user" required>
+                <option value="">-- Select --</option>
+                <option value="Sebastian">Sebastian</option>
+                <option value="Wilberto">Wilberto</option>
+                <option value="Lou">Lou</option>
+            </select>
+            <button type="submit">Login</button>
+        </form>
+
+        <hr>
+
+        <h3>Admin Login</h3>
+        <form action="{{ url_for('admin_login') }}" method="POST">
+            <label for="admin_username">Username:</label>
+            <input type="text" name="admin_username" required>
+            <label for="admin_password">Password:</label>
+            <input type="password" name="admin_password" required>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+</body>
+</html>

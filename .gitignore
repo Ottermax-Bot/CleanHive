@@ -1,0 +1,37 @@
+# Python-specific ignores
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.log
+
+# Virtual environment
+venv/
+
+# Flask instance folder (only include if you don't need local config files)
+instance/
+
+# Database files (exclude if using a production database)
+*.db
+*.sqlite3
+
+# Migrations folder cache (keep migrations but ignore cache files)
+migrations/versions/__pycache__/
+
+# System-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore temporary files
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# IDE-specific files
+.vscode/
+.idea/
+*.iml
+
+# Node modules (if any front-end dependencies exist)
+node_modules/

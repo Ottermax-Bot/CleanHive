@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CleanHive - Reservations</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+ function updateReservations() {
+    fetch("{{ url_for('fetch_reservations') }}")
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.querySelector("tbody");
+            tbody.innerHTML = ""; // Clear existing table
+
+            data.forEach(reservation => {
+                let row = document.createElement("tr");
+                row.id = `row_${reservation.vehicle_number}`;
+
+                // Flags logic
+                let flagsHtml = "";
+                if (reservation.is_vip) {
+                    flagsHtml += '<span class="vip-tag">VIP</span> ';
+                }
+                if (reservation.early_pickup) {
+                    flagsHtml += '<span class="early-pickup-tag">Early Pickup</span> ';
+                }
+                if (reservation.previously_cleaned) {
+                    flagsHtml += '<span class="previously-cleaned">Previously Cleaned</span> ';
+                }
+
+                // Action button logic
+                let actionHtml = "";
+                if (reservation.previously_cleaned) {
+                    actionHtml = `<button class="btn btn-warning" onclick="removeReservation('${reservation.vehicle_number}')">Remove</button>`;
+                } else if (reservation.is_active_clean) {
+                    actionHtml = `<button class="btn btn-danger" onclick="openCleanerModal('${reservation.vehicle_number}')">Finish Clean</button>`;
+                } else {
+                    actionHtml = `<button class="btn btn-success" onclick="startClean('${reservation.vehicle_number}')">Start Clean</button>`;
+                }
+
+                // Populate row data
+                row.innerHTML = `
+                    <td id="action_${reservation.vehicle_number}">${actionHtml}</td>
+                    <td>${flagsHtml}</td>
+                    <td>${new Date(reservation.pickup_time).toLocaleString()}</td>
+                    <td>${reservation.vehicle_number}</td>
+                    <td>${reservation.vehicle_class}</td>
+                    <td>${reservation.last_cleaned || '-'}</td> <!-- Ensure 'Last Cleaned' is displayed -->
+                    <td>${reservation.last_rented || '-'}</td>
+                    <td>${reservation.notes || '-'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        })
+        .catch(err => console.error("Error fetching reservations:", err));
+}
+
+
+
+    function startClean(vehicleNumber) {
+        fetch(`/start-clean/${vehicleNumber}`, { method: "POST" })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    const actionCell = document.getElementById(`action_${vehicleNumber}`);
+                    actionCell.innerHTML = `
+                        <button class="btn btn-danger" onclick="openCleanerModal('${vehicleNumber}')">Finish Clean</button>
+                    `;
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(err => console.error("Error starting clean:", err));
+    }
+
+    function openCleanerModal(vehicleNumber) {
+        document.getElementById("vehicleNumber").value = vehicleNumber;
+        document.getElementById("cleanerModal").style.display = "block";
+    }
+
+    function closeModal() {
+        document.getElementById("cleanerModal").style.display = "none";
+    }
+
+    function finishClean(event) {
+        event.preventDefault();
+        const formData = new FormData(document.getElementById("cleanerForm"));
+
+        fetch(`/finish-clean/${formData.get("vehicleNumber")}`, { method: "POST", body: formData })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    const vehicleNumber = formData.get("vehicleNumber");
+                    const row = document.getElementById(`row_${vehicleNumber}`);
+                    if (row) {
+                        row.remove(); // Remove the row after finishing clean
+                    }
+                    closeModal();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(err => console.error("Error finishing clean:", err));
+    }
+	
+	function removeReservation(vehicleNumber) {
+    fetch(`/remove-reservation/${vehicleNumber}`, { method: "POST" })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                const row = document.getElementById(`row_${vehicleNumber}`);
+                if (row) {
+                    row.remove(); // Remove from UI
+                }
+            } else {
+                alert("Error removing reservation.");
+            }
+        })
+        .catch(err => console.error("Error removing reservation:", err));
+}
+
+
+    setInterval(updateReservations, 5000);
+    updateReservations();
+</script>
+
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <a href="{{ url_for('reservation_page') }}">Reservations</a>
+        <a href="{{ url_for('manual_clean_page') }}">Manual Entry</a>
+        <a href="{{ url_for('login') }}">Logout</a>
+    </div>
+
+<!-- Cleaner Selection Modal -->
+<div id="cleanerModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h3>Confirm Cleaners</h3>
+        <form id="cleanerForm" onsubmit="finishClean(event)">
+            <div>
+                <label><input type="checkbox" name="cleaner" value="Sebastian"> Sebastian</label><br>
+                <label><input type="checkbox" name="cleaner" value="Wilberto"> Wilberto</label><br>
+                <label><input type="checkbox" name="cleaner" value="Lou"> Lou</label><br>
+            </div>
+            <input type="hidden" id="vehicleNumber" name="vehicleNumber">
+            <button type="submit" class="btn btn-primary">Confirm</button>
+            <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button>
+        </form>
+    </div>
+</div>
+
+
+
+    <!-- Reservations Table -->
+    <div class="reservation-container">
+        <h2>Welcome, {{ session['user'] }}!</h2>
+        <h3>Reservations</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Actions</th>
+                    <th>Flags</th>
+                    <th>Pickup Time</th>
+                    <th>Vehicle #</th>
+                    <th>Class</th>
+                    <th>Last Cleaned</th>
+                    <th>Last Rented</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows dynamically loaded via JavaScript -->
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

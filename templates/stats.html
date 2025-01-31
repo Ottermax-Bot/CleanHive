@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CleanHive - Stats</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        function fetchStats() {
+            fetch("/fetch-stats")
+                .then(response => response.json())
+                .then(data => {
+                    // Populate Cleaner Performance
+                    const cleanerPerformanceTable = document.getElementById("cleanerPerformance");
+                    cleanerPerformanceTable.innerHTML = data.cleanerPerformance.map(item => `
+                        <tr>
+                            <td>${item.cleaner}</td>
+                            <td>${item.cleans}</td>
+                        </tr>
+                    `).join("");
+
+                    // Populate Daily Cleaning Insights
+                    const dailyCleansTable = document.getElementById("dailyCleans");
+                    dailyCleansTable.innerHTML = data.dailyCleans.map(item => `
+                        <tr>
+                            <td>${item.date}</td>
+                            <td>${item.count}</td>
+                        </tr>
+                    `).join("");
+
+                    // Populate Average Cleaning Times
+                    const cleaningTimesTable = document.getElementById("cleaningTimes");
+                    cleaningTimesTable.innerHTML = data.cleaningTimes.map(item => `
+                        <tr>
+                            <td>${item.vehicle_class}</td>
+                            <td>${item.average_time} mins</td>
+                        </tr>
+                    `).join("");
+
+                    // Populate Busiest Periods
+                    const busiestMonthsTable = document.getElementById("busiestMonths");
+                    busiestMonthsTable.innerHTML = data.busiestMonths.map(item => `
+                        <tr>
+                            <td>${item.month}</td>
+                            <td>${item.total_cleans}</td>
+                        </tr>
+                    `).join("");
+                })
+                .catch(err => console.error("Error fetching stats:", err));
+        }
+
+        document.addEventListener("DOMContentLoaded", fetchStats);
+    </script>
+</head>
+<body>
+    <div class="stats-container">
+        <h2>Stats</h2>
+
+        <section>
+            <h3>Cleaner Performance (Past Week)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cleaner</th>
+                        <th>Vehicles Cleaned</th>
+                    </tr>
+                </thead>
+                <tbody id="cleanerPerformance">
+                    <!-- Dynamically populated -->
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h3>Daily Cleaning Insights (Past Week)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Vehicles Cleaned</th>
+                    </tr>
+                </thead>
+                <tbody id="dailyCleans">
+                    <!-- Dynamically populated -->
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h3>Average Cleaning Times by Vehicle Class</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Class</th>
+                        <th>Avg Cleaning Time (mins)</th>
+                    </tr>
+                </thead>
+                <tbody id="cleaningTimes">
+                    <!-- Dynamically populated -->
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h3>Busiest Months</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Vehicles Cleaned</th>
+                    </tr>
+                </thead>
+                <tbody id="busiestMonths">
+                    <!-- Dynamically populated -->
+                </tbody>
+            </table>
+        </section>
+    </div>
+</body>
+</html>

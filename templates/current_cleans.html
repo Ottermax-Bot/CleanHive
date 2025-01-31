@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Current Cleans</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        function updateCurrentCleans() {
+            fetch("{{ url_for('fetch_current_cleans') }}")
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.querySelector("tbody");
+                    tbody.innerHTML = "";
+
+                    data.forEach(clean => {
+                        const row = document.createElement("tr");
+
+                        const elapsedTime = Math.floor((Date.now() - new Date(clean.start_time).getTime()) / 1000);
+                        const minutes = Math.floor(elapsedTime / 60);
+                        const seconds = elapsedTime % 60;
+
+                        row.innerHTML = `
+                            <td>${clean.cleaner}</td>
+                            <td>${clean.vehicle_number}</td>
+                            <td>${new Date(clean.estimated_completion).toLocaleTimeString()}</td>
+                            <td>${minutes}m ${seconds}s</td>
+                            <td>
+                                <form onsubmit="finishClean('${clean.vehicle_number}'); return false;">
+                                    <button type="submit" class="btn btn-danger">Finish Clean</button>
+                                </form>
+                            </td>
+                        `;
+
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(err => console.error("Error fetching current cleans:", err));
+        }
+
+        function finishClean(vehicleNumber) {
+            fetch(`/finish-clean/${vehicleNumber}`, { method: "POST" })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        updateCurrentCleans();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(err => console.error("Error finishing clean:", err));
+        }
+
+        setInterval(updateCurrentCleans, 5000);
+        updateCurrentCleans();
+    </script>
+</head>
+<body>
+    <h2>Current Cleans</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Cleaner</th>
+                <th>Vehicle #</th>
+                <th>Estimated Completion</th>
+                <th>Elapsed Time</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data will be loaded dynamically -->
+        </tbody>
+    </table>
+</body>
+</html>

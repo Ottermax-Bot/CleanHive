@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Completed Reservations</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        function fetchCompletedReservations() {
+            fetch("{{ url_for('fetch_completed_reservations') }}")
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.querySelector("tbody");
+                    tbody.innerHTML = "";
+
+                    data.forEach(reservation => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${reservation.vehicle_number}</td>
+                            <td>${reservation.vehicle_class}</td>
+                            <td>${new Date(reservation.pickup_time).toLocaleString()}</td>
+                            <td>${reservation.last_cleaned}</td>
+                            <td>${reservation.last_rented}</td>
+                            <td>${reservation.cleaned_by}</td>
+                            <td>${reservation.notes}</td>
+                            <td>
+                                ${reservation.is_vip ? '<span class="vip-tag">VIP</span>' : ''}
+                                ${reservation.early_pickup ? '<span class="early-pickup-tag">Early Pickup</span>' : ''}
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(err => console.error("Error fetching completed reservations:", err));
+        }
+
+        document.addEventListener("DOMContentLoaded", fetchCompletedReservations);
+    </script>
+</head>
+<body>
+    <div class="completed-container">
+        <h2>Completed Reservations</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Vehicle #</th>
+                    <th>Class</th>
+                    <th>Pickup Time</th>
+                    <th>Last Cleaned</th>
+                    <th>Last Rented</th>
+                    <th>Cleaned By</th>
+                    <th>Notes</th>
+                    <th>Flags</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Completed reservations will be dynamically loaded -->
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Current Reservations</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        function updateTimers() {
+            const now = Date.now();
+            document.querySelectorAll(".timer").forEach(timer => {
+                const vehicleId = timer.dataset.vehicle;
+                const startTime = localStorage.getItem("cleaning_" + vehicleId);
+                if (startTime) {
+                    const elapsed = Math.floor((now - startTime) / 1000);
+                    const minutes = Math.floor(elapsed / 60);
+                    const seconds = elapsed % 60;
+                    timer.textContent = `Time: ${minutes}m ${seconds}s`;
+                } else {
+                    timer.textContent = "Not Started";
+                }
+            });
+        }
+        setInterval(updateTimers, 1000);
+
+        function toggleVIP(reservationId) {
+            fetch(`/toggle-vip/${reservationId}`, { method: "POST" }).then(() => location.reload());
+        }
+
+        function toggleEarly(reservationId) {
+            fetch(`/toggle-early/${reservationId}`, { method: "POST" }).then(() => location.reload());
+        }
+    </script>
+</head>
+<body>
+    <nav class="navigation">
+    <ul>
+        <li><a href="{{ url_for('upload_reservations') }}">Upload Reservations</a></li>
+        <li><a href="{{ url_for('reservation_page') }}">Reservation View</a></li>
+        <li><a href="{{ url_for('logs_page') }}">Logs</a></li>
+        <li><a href="{{ url_for('stats_page') }}">Stats</a></li>
+		<li><a href="{{ url_for('completed_page') }}">Completed</a></li>
+        <li><a href="{{ url_for('current_clean_page') }}">Current Clean</a></li>
+    </ul>
+</nav>
+
+
+        <h2>Current Reservations</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Vehicle #</th>
+                    <th>Class</th>
+                    <th>Pickup Time</th>
+                    <th>Last Cleaned</th>
+                    <th>Last Rented</th>
+                    <th>Notes</th>
+                    <th>Flags</th>
+                    <th>Cleaned By</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for res in reservations %}
+                <tr>
+                    <td>{{ res.customer_name }}</td>
+                    <td>{{ res.vehicle_number }}</td>
+                    <td>{{ res.vehicle_class }}</td>
+                    <td>{{ res.pickup_time.strftime('%m/%d/%Y %I:%M %p') }}</td>
+                    <td>{{ res.last_cleaned }}</td>
+                    <td>{{ res.last_rented }}</td>
+                    <td>
+                        <form action="{{ url_for('edit_note', reservation_id=res.id) }}" method="POST">
+                            <input type="text" name="notes" value="{{ res.notes }}" placeholder="Add a note">
+                            <button type="submit">Save</button>
+                        </form>
+                    </td>
+                    <td>
+                        <button onclick="toggleVIP({{ res.id }})" class="{{ 'vip-active' if res.is_vip else '' }}">VIP</button>
+                        <button onclick="toggleEarly({{ res.id }})" class="{{ 'early-active' if res.early_pickup else '' }}">Early Pickup</button>
+                    </td>
+                    <td>{{ res.cleaned_by }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CleanHive - Logs</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        // Convert UTC time to local time
+        function toLocalTime(utcDateTime) {
+            const options = {
+                timeZone: 'America/New_York', // Replace with your local timezone
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            return new Date(utcDateTime).toLocaleString('en-US', options);
+        }
+
+        function fetchLogs() {
+    const cleaner = document.getElementById("cleanerFilter").value;
+    const vehicle = document.getElementById("vehicleFilter").value;
+    const startDate = document.getElementById("startDate").value;
+    const endDate = document.getElementById("endDate").value;
+
+    fetch(`/fetch-logs?cleaner=${cleaner}&vehicle=${vehicle}&start=${startDate}&end=${endDate}`)
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.querySelector("tbody");
+            tbody.innerHTML = "";
+
+            data.forEach(log => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${toLocalTime(log.clean_date)}</td>
+                    <td>${log.vehicle_number}</td>
+                    <td>${log.cleaners}</td>
+                    <td>${log.notes || "-"}</td>
+                    <td>${log.pickup_time || "-"}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        })
+        .catch(err => console.error("Error fetching logs:", err));
+}
+
+
+        function exportLogs() {
+            const cleaner = document.getElementById("cleanerFilter").value;
+            const vehicle = document.getElementById("vehicleFilter").value;
+            const startDate = document.getElementById("startDate").value;
+            const endDate = document.getElementById("endDate").value;
+
+            const url = `/export-logs?cleaner=${cleaner}&vehicle=${vehicle}&start=${startDate}&end=${endDate}`;
+            window.location.href = url;
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchLogs(); // ✅ Fetch logs immediately when the page loads
+        });
+    </script>
+</head>
+<body>
+    <div class="logs-container">
+        <h2>Logs</h2>
+        <div class="filters">
+            <label for="cleanerFilter">Cleaner:</label>
+            <select id="cleanerFilter" onchange="fetchLogs()">
+                <option value="">All</option>
+                {% for cleaner in cleaners %}
+                <option value="{{ cleaner }}">{{ cleaner }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="vehicleFilter">Vehicle #:</label>
+            <input type="text" id="vehicleFilter" placeholder="Enter vehicle #" oninput="fetchLogs()">
+
+            <label for="startDate">Start Date:</label>
+            <input type="date" id="startDate" onchange="fetchLogs()">
+
+            <label for="endDate">End Date:</label>
+            <input type="date" id="endDate" onchange="fetchLogs()">
+
+            <button onclick="exportLogs()">Export as CSV</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date/Time</th>
+                    <th>Vehicle #</th>
+                    <th>Cleaner(s)</th>
+                    <th>Notes</th>
+                    <th>Pickup Time</th> <!-- New column for Pickup Time -->
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Logs dynamically loaded here -->
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

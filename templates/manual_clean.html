@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CleanHive - Manual Clean</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        // Automatically populate current date and time for the Clean Date/Time field
+        document.addEventListener("DOMContentLoaded", () => {
+            const now = new Date();
+            const formattedDateTime = now.toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+            });
+            document.getElementById("clean_date").value = formattedDateTime;
+        });
+    </script>
+</head>
+<body>
+    <div class="manual-clean-container">
+        <h2>Manual Clean Entry</h2>
+       <form action="{{ url_for('submit_manual_clean') }}" method="POST">
+    <label for="vehicle_number">Vehicle #:</label>
+    <input type="text" id="vehicle_number" name="vehicle_number" placeholder="Enter Vehicle #" required>
+
+    <label for="clean_date">Clean Date/Time:</label>
+    <input type="text" id="clean_date" name="clean_date" readonly value="{{ current_time }}">
+
+    <label for="cleaners">Cleaners:</label>
+    <div id="cleaners">
+        <!-- Default logged-in user, pre-selected and uneditable -->
+        <label>
+            <input type="checkbox" name="additional_cleaners" value="{{ session['user'] }}" checked disabled>
+            {{ session['user'] }} (Logged In)
+        </label>
+        <!-- Optional other cleaners -->
+        {% if session['user'] != "Wilberto" %}
+        <label><input type="checkbox" name="additional_cleaners" value="Wilberto"> Wilberto</label>
+        {% endif %}
+        {% if session['user'] != "Lou" %}
+        <label><input type="checkbox" name="additional_cleaners" value="Lou"> Lou</label>
+        {% endif %}
+        {% if session['user'] != "Sebastian" %}
+        <label><input type="checkbox" name="additional_cleaners" value="Sebastian"> Sebastian</label>
+        {% endif %}
+    </div>
+
+    <label for="purpose">Purpose:</label>
+    <select id="purpose" name="purpose">
+        <option value="Rental" selected>Rental</option>
+        <option value="Sales">Sales</option>
+    </select>
+
+    <button type="submit" class="btn btn-primary">Submit Manual Clean</button>
+</form>
+
+    </div>
+</body>
+</html>
